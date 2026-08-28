@@ -1,0 +1,54 @@
+x`---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(scales)
+
+ploidy <- read.csv("../Data/img_data.csv")
+```
+
+```{r}
+means <- ploidy %>% group_by(Genotype) %>% summarise(Mean = mean(DAPI_total), stdev = sd(DAPI_total)) %>% 
+  mutate(FoldChange = Mean / Mean[Genotype == "Control"])
+means
+```
+
+```{r}
+t.test(DAPI_total ~ Genotype, data = ploidy)
+```
+
+```{r}
+ggplot(ploidy, aes(x = Genotype, y = DAPI_total)) + 
+  geom_violin(fill="grey85", linewidth = 0.9,
+    outlier.shape = NA) + 
+  geom_jitter(
+    aes(colour = as.factor(Sample)),
+    width = 0.15, size = 2, alpha = 0.7
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  #geom_point(
+    #position = position_jitter(width = 0.15),
+    #size = 2,
+    #alpha = 0.7
+  #) + 
+  stat_summary(
+    fun = mean,
+    geom = "point",
+    shape = 95,
+    size = 10,
+    color = "grey"
+  ) +
+  theme_prism(base_size = 8) +
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = label_number(scale = 1e-7)) +
+  scale_fill_discrete(
+    labels = c("Control" = "Control", "Experimental" = "Pnut RNAi")
+  ) +
+  xlab(NULL) +
+  labs(y = "DAPI Total Intensity (1 x 10^7 A.U.)")
+ggsave("../Results/PnutPloidyViolin2.pdf", width= 6, height= 6)
+```

@@ -1,0 +1,354 @@
+---
+title: "WT_RC_CellCount_Quantification"
+output: html_document
+date: "2026-06-17"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(stringr)
+```
+
+```{r}
+WT_RC_CellCount_Quantification <- read_csv("../Data/WT_RC_CellCount_Quantification.csv")
+```
+
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+WT_RC_CellCount_Quantification <- WT_RC_CellCount_Quantification %>%
+  group_by(Replicate, Category) %>%
+  mutate(RC_to_Cell= RC_Count / Cell_Count)
+```
+
+```{r}
+ggplot(WT_RC_CellCount_Quantification,
+       aes(x = Category, y = RC_to_Cell)) +
+  geom_boxplot(
+    outlier.shape = NA,
+    fill = "grey85"
+  ) +
+  geom_jitter(
+    aes(color = factor(Replicate)),
+    width = 0.15,
+    height = 0,
+    size = 3,
+    alpha = 0.8
+  ) +
+  xlab("RC to Cell Ratio") +
+  ylab(NULL) +
+  labs(color = "Replicate") +
+  theme_prism() +
+  theme(
+    axis.text.x = element_text(size = 12), legend.position = "none"
+  ) +
+  scale_x_discrete(labels = \(x) str_wrap(x, width = 10))
+  ggsave("../Results/WT_RC_CellCount_Quantification.pdf")
+```
+
+```{r}
+WT_RC_CellCount_Quantification <- WT_RC_CellCount_Quantification %>% mutate(
+  CombinedCategory = replace_when(
+    Category,
+    Category == "pav, pnut" ~ "pav",
+    Category == "pav, vsg, pnut" ~ "pav, vsg",
+    Category == "vsg, pav" ~ "pav, vsg"
+  )
+)
+
+WT_RC_CellCount_Quantification_combined <- WT_RC_CellCount_Quantification %>% 
+  group_by(`File name`, Replicate, CombinedCategory) %>% 
+  summarise(RC_to_Cell_Sum = sum(RC_to_Cell))
+```
+
+```{r}
+ggplot(WT_RC_CellCount_Quantification_combined,
+       aes(x = CombinedCategory, y = RC_to_Cell_Sum)) +
+  geom_boxplot(
+    outlier.shape = NA,
+    fill = "grey85"
+  ) +
+  geom_jitter(
+    aes(color = factor(Replicate)),
+    width = 0.15,
+    height = 0,
+    size = 3,
+    alpha = 0.8
+  ) +
+  xlab("RC to Cell Ratio") +
+  ylab(NULL) +
+  labs(color = "Replicate") +
+  theme_prism() +
+  theme(
+    axis.text.x = element_text(size = 12), legend.position = "none"
+  ) +
+  scale_x_discrete(labels = \(x) str_wrap(x, width = 10))
+  ggsave("../Results/Combined_WT_RC_CellCount_Quantification.pdf", width= 6, height= 5)
+```
+
+```{r}
+WT_RC_CellCount_Quantification_combined %>% 
+  group_by(Replicate, CombinedCategory) %>% 
+  summarise(Replicate_Mean = mean(RC_to_Cell_Sum), 
+            .groups = "drop") %>% 
+  group_by(CombinedCategory) %>% 
+  summarise(Mean = mean(Replicate_Mean), SD = sd(Replicate_Mean))
+```
+
+```{r}
+WT_RC_CellCount_Quantification %>%
+  group_by(`File name`, Replicate) %>% 
+  summarise(
+    pav_no_vsg_pnut = sum(
+      RC_Count[Category == "pav, pnut"],
+      na.rm = TRUE),
+    
+    pav_no_vsg_total = sum(
+      RC_Count[Category %in% c("pav", "pav, pnut")],
+      na.rm = TRUE),
+    
+    pav_vsg_pnut = sum(
+      RC_Count[Category == "pav, vsg, pnut"],
+      na.rm = TRUE),
+    
+    pav_vsg_total = sum(
+      RC_Count[Category %in% c("vsg, pav", "pav, vsg, pnut")],
+      na.rm = TRUE),
+    
+    .groups = "drop"
+  ) %>% 
+  group_by(Replicate) %>% 
+  summarise(
+    pav_no_vsg_percent = sum(pav_no_vsg_pnut) / sum(pav_no_vsg_total),
+    pav_vsg_percent = sum(pav_vsg_pnut) / sum(pav_vsg_total)
+  ) %>% 
+  summarise(
+    pav_no_vsg_mean = mean(pav_no_vsg_percent),
+    pav_no_vsg_sd = sd(pav_no_vsg_percent),
+    pav_vsg_mean = mean(pav_vsg_percent),
+    pav_vsg_sd = sd(pav_vsg_percent)
+  )
+```
+
+```{r}
+pav <- WT_RC_CellCount_Quantification %>% 
+  group_by(`File name`, Replicate) %>% 
+  summarise(
+    PavNoVsg = sum(RC_Count[Category %in% c("pav", "pav, pnut")], na.rm = TRUE),
+    PavNoPnut = sum(RC_Count[Category %in% c("pav", "vsg, pav")], na.rm = TRUE),
+    PavOnly = sum(RC_Count[Category == "pav"], na.rm = TRUE),
+    PavVsgNoPnut = sum(RC_Count[Category == "vsg, pav"], na.rm = TRUE),
+    PavVsgTotal = sum(RC_Count[Category %in% c("vsg, pav", "pav, vsg, pnut")]),
+    PavTotal = sum(RC_Count[grepl("pav", Category)]),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    PavNoVsgPercent = PavNoVsg / PavTotal,
+    PavNoPnutPercent = PavNoPnut / PavTotal,
+    PercentPavOnly_vs_PavNoVsg = PavOnly / PavNoVsg,
+    PercentPavVsgNoPnut_vs_PavVsgTotal = PavVsgNoPnut / PavVsgTotal
+  ) %>% 
+  group_by(Replicate) %>% 
+  summarise(
+    PavNoVsgMean = mean(PavNoVsgPercent),
+    PavNoPnutMean = mean(PavNoPnutPercent),
+    PercentPavOnly_vs_PavNoVsgMean = mean(PercentPavOnly_vs_PavNoVsg),
+    PercentPavVsgNoPnut_vs_PavVsgTotalMean = mean(PercentPavVsgNoPnut_vs_PavVsgTotal)
+    )
+```
+
+```{r}
+pav_summary <- pav %>%
+  summarise(
+    PavNoVsg_mean = mean(PavNoVsgMean, na.rm = TRUE),
+    PavNoVsg_sd   = sd(PavNoVsgMean, na.rm = TRUE),
+
+    PavNoPnut_mean = mean(PavNoPnutMean, na.rm = TRUE),
+    PavNoPnut_sd   = sd(PavNoPnutMean, na.rm = TRUE),
+
+    PercentPavOnly_vs_PavNoVsg_mean =
+      mean(PercentPavOnly_vs_PavNoVsgMean, na.rm = TRUE),
+    PercentPavOnly_vs_PavNoVsg_sd =
+      sd(PercentPavOnly_vs_PavNoVsgMean, na.rm = TRUE),
+
+    PercentPavVsgNoPnut_vs_PavVsgTotal_mean =
+      mean(PercentPavVsgNoPnut_vs_PavVsgTotalMean, na.rm = TRUE),
+    PercentPavVsgNoPnut_vs_PavVsgTotal_sd =
+      sd(PercentPavVsgNoPnut_vs_PavVsgTotalMean, na.rm = TRUE)
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = c("Measurement", ".value"),
+    names_pattern = "^(.*)_(mean|sd)$"
+  )
+```
+
+
+```{r}
+vsg <- WT_RC_CellCount_Quantification %>% 
+  group_by(`File name`, Replicate) %>% 
+  summarise(
+    VsgNoPav = sum(RC_Count[Category == "vsg"], na.rm = TRUE),
+    VsgNoPnut = sum(RC_Count[Category %in% c("vsg", "vsg, pav")], na.rm = TRUE),
+    VsgTotal = sum(RC_Count[grepl("vsg", Category)]),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    VsgNoPavPercent = VsgNoPav / VsgTotal,
+    VsgNoPnutPercent = VsgNoPnut / VsgTotal
+  ) %>% 
+  group_by(Replicate) %>% 
+  summarise(
+    VsgNoPavMean = mean(VsgNoPavPercent),
+    VsgNoPnutMean = mean(VsgNoPnutPercent))
+
+vsg %>% summarise(
+  VsgNoPav = mean(VsgNoPavMean),
+  VsgNoPavSD = sd(VsgNoPavMean),
+  VsgNoPnut = mean(VsgNoPnutMean),
+  VsgNoPnutSD = sd(VsgNoPnutMean)
+  )
+```
+
+```{r}
+# Calculate percentages separately for each file
+ring_percent_by_file <- WT_RC_CellCount_Quantification %>%
+  group_by(`File name`, Replicate) %>%
+  summarise(
+    # All Pav+ rings
+    PavTotal = sum(
+      RC_Count[str_detect(Category, fixed("pav"))],
+      na.rm = TRUE
+    ),
+
+    # All Vsg+ rings
+    VsgTotal = sum(
+      RC_Count[str_detect(Category, fixed("vsg"))],
+      na.rm = TRUE
+    ),
+
+    # Pav+, Vsg+ rings, regardless of Pnut
+    PavVsgTotal = sum(
+      RC_Count[
+        Category %in% c("vsg, pav", "pav, vsg, pnut")
+      ],
+      na.rm = TRUE
+    ),
+
+    # Pav+, Vsg- rings, regardless of Pnut
+    PavNoVsgTotal = sum(
+      RC_Count[
+        Category %in% c("pav", "pav, pnut")
+      ],
+      na.rm = TRUE
+    ),
+
+    # Pav+, Vsg-, Pnut+ rings
+    PavNoVsgPnut = sum(
+      RC_Count[Category == "pav, pnut"],
+      na.rm = TRUE
+    ),
+
+    # Pav+, Vsg+, Pnut+ rings
+    PavVsgPnut = sum(
+      RC_Count[Category == "pav, vsg, pnut"],
+      na.rm = TRUE
+    ),
+
+    .groups = "drop"
+  ) %>%
+  mutate(
+    # Percentage of Pav+ rings that are Vsg+
+    PavVsg_among_Pav = if_else(
+      PavTotal > 0,
+      100 * PavVsgTotal / PavTotal,
+      NA_real_
+    ),
+
+    # Percentage of Vsg+ rings that are Pav+
+    PavVsg_among_Vsg = if_else(
+      VsgTotal > 0,
+      100 * PavVsgTotal / VsgTotal,
+      NA_real_
+    ),
+
+    # Percentage of Pav+, Vsg- rings that are Pnut+
+    Pnut_among_PavNoVsg = if_else(
+      PavNoVsgTotal > 0,
+      100 * PavNoVsgPnut / PavNoVsgTotal,
+      NA_real_
+    ),
+
+    # Percentage of Pav+, Vsg+ rings that are Pnut+
+    Pnut_among_PavVsg = if_else(
+      PavVsgTotal > 0,
+      100 * PavVsgPnut / PavVsgTotal,
+      NA_real_
+    )
+  )
+```
+
+```{r}
+ring_percent_by_replicate <- ring_percent_by_file %>%
+  group_by(Replicate) %>%
+  summarise(
+    PavVsg_among_Pav =
+      mean(PavVsg_among_Pav, na.rm = TRUE),
+
+    PavVsg_among_Vsg =
+      mean(PavVsg_among_Vsg, na.rm = TRUE),
+
+    Pnut_among_PavNoVsg =
+      mean(Pnut_among_PavNoVsg, na.rm = TRUE),
+
+    Pnut_among_PavVsg =
+      mean(Pnut_among_PavVsg, na.rm = TRUE),
+
+    .groups = "drop"
+  )
+```
+
+```{r}
+ring_percent_summary <- ring_percent_by_replicate %>%
+  pivot_longer(
+    cols = -Replicate,
+    names_to = "Measurement",
+    values_to = "ReplicateMean"
+  ) %>%
+  group_by(Measurement) %>%
+  summarise(
+    Mean = mean(ReplicateMean, na.rm = TRUE),
+    SD = sd(ReplicateMean, na.rm = TRUE),
+    n_replicates = sum(!is.na(ReplicateMean)),
+    .groups = "drop"
+  )
+```
+
+```{r}
+ring_percent_long <- ring_percent_by_file %>% 
+  select(`File name`, Replicate, Pnut_among_PavNoVsg, Pnut_among_PavVsg) %>% 
+  pivot_longer(!c(`File name`, Replicate), names_to = "Category", values_to = "Percent")
+```
+
+```{r}
+ggplot(ring_percent_long, aes(x = Category, y = Percent)) +
+  geom_boxplot(fill = "grey") +
+  geom_jitter(
+    aes(color = factor(Replicate)),
+    width = 0.15,
+    height = 0,
+    size = 3,
+    alpha = 0.8
+  ) +
+  theme_prism() +
+  theme(legend.position = "none"
+  ) +
+  labs(x = NULL, y = "Percent that are Pnut+") +
+  scale_x_discrete(labels = c("Pav+, Vsg-", "Pav+, Vsg+"))
+
+ggsave("../Results/Pnut_amongPavVsg.pdf", width = 75, height = 100, units = "mm")
+```
+

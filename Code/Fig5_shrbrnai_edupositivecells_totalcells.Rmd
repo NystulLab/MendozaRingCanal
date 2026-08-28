@@ -1,0 +1,78 @@
+---
+title: "shrbrnai_edupositivecells_totalcells"
+output: html_document
+date: "2026-03-05"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+```
+
+```{r}
+shrbrnai_edupositivecells_totalcells <- read_csv("../Data/shrbrnai_edupositivecells_totalcells.csv")
+```
+
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+shrbrnai_edupositivecells_totalcells <- shrbrnai_edupositivecells_totalcells %>%
+  mutate(ratio = (EduPositiveCells / TotalCells)*100)
+```
+
+```{r}
+shrbrnai_edupositivecells_totalcells_summary <- shrbrnai_edupositivecells_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(ratio = mean(ratio, na.rm = TRUE))
+
+t.test(ratio ~ Group, data = shrbrnai_edupositivecells_totalcells_summary)
+```
+```{r}
+stat_results <- shrbrnai_edupositivecells_totalcells_summary %>%
+  group_by(Genotype) %>%
+  rstatix::t_test(ratio ~ Group) %>% 
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 1, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+ggplot() +
+  scale_y_continuous(labels = scales::percent_format(scale = 1), limits = c(0, 50)) +
+  geom_boxplot(
+    data = shrbrnai_edupositivecells_totalcells_summary,
+    aes(x = Group, y = ratio), 
+    fill = "grey85",
+    linewidth = 0.9,
+    outlier.shape = NA
+  ) +
+  geom_jitter(
+    data = shrbrnai_edupositivecells_totalcells,
+    aes(x = Group, y = ratio, colour = as.factor(Replicate)),
+    width = 0.2, height = 0, size = 3, alpha = 0.8
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  stat_pvalue_manual(
+    stat_results,
+    label = "p.signif",
+    tip.length = 0.05,
+    bracket.size = 1,
+    size= 8,
+    hide.ns = TRUE
+  ) +
+  theme_prism() +
+   xlab(NULL) +
+  ylab("% of Edu+ Follicle Cells") +
+  theme(legend.position = "none")
+```
+```{r}
+ggsave("../Results/shrbrnai_edupositivecells_totalcells.pdf", width= 6, height= 6)
+```
+
+```{r}
+shrbrnai_edupositivecells_totalcells_summary %>% group_by(Group) %>% summarise(Mean = mean(ratio), SD = sd(ratio))
+```
+

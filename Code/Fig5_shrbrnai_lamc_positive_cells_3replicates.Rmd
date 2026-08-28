@@ -1,0 +1,69 @@
+---
+title: "shrbrnai_lamc_positive_cells_3replicates"
+output: html_document
+date: "2026-01-15"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+```
+
+```{r}
+lamc_positive_cells <- read_csv("../Data/shrbrnai_lamc_positive_cells_3replicates.csv")
+```
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+lamc_positive_cells_summary <- lamc_positive_cells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(total_lamc = sum(Total_LamC_Cells, na.rm = TRUE),
+  total_germaria = n(),
+  lamc_per_germarium = total_lamc / total_germaria,.groups = "drop")
+```
+
+```{r}
+stat_results <- lamc_positive_cells_summary %>%
+  rstatix::t_test(lamc_per_germarium ~ Group) %>% 
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 1.2, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+ggplot() +
+  scale_y_continuous(limits = c(0, 50)) +
+  geom_boxplot(
+    data = lamc_positive_cells_summary,
+    aes(x = Group, y = lamc_per_germarium), 
+    fill = "grey85",
+    linewidth = 0.9,
+    outlier.shape = NA
+  ) +
+  geom_jitter(
+    data = lamc_positive_cells,
+    aes(x = Group, y = Total_LamC_Cells, colour = as.factor(Replicate)),
+    width = 0.2, height = 0, size = 3, alpha = 0.8
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  stat_pvalue_manual(
+    stat_results,
+    label = "p.signif",
+    tip.length = 0.05,
+    bracket.size = 1,
+    size= 8,
+    hide.ns = TRUE
+  ) +
+  theme_prism() +
+  xlab(NULL) +
+  ylab("Average LamC+, Edu+ Follicle Cells Per Germarium") +
+  theme(legend.position = "none") +
+  theme(axis.title.y = element_text(size = 12))
+```
+```{r}
+ggsave("../Results/shrbrnai_lamc_positive_cells_3replicates.pdf", width= 6, height= 6)
+```
+

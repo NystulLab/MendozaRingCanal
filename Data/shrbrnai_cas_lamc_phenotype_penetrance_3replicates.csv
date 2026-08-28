@@ -1,0 +1,13 @@
+Genotype,Group,Cell Marker,Replicate,Total_Germaria,Phenotype Penetrance,No Phenotype
+shrbRNAi,Control,LamC,1,100,0,100
+shrbRNAi,Control,LamC,2,100,0,100
+shrbRNAi,Control,LamC,3,100,0,100
+shrbRNAi,shrbRNAi,LamC,1,100,100,0
+shrbRNAi,shrbRNAi,LamC,2,100,100,0
+shrbRNAi,shrbRNAi,LamC,3,100,100,0
+shrbRNAi,Control,Cas,1,40,0,40
+shrbRNAi,Control,Cas,2,43,1,42
+shrbRNAi,Control,Cas,3,38,0,38
+shrbRNAi,shrbRNAi,Cas,1,45,42,3
+shrbRNAi,shrbRNAi,Cas,2,29,25,4
+shrbRNAi,shrbRNAi,Cas,3,57,57,0

@@ -1,0 +1,120 @@
+  ---
+title: "WT_ptyrquantification_pav_vsg"
+output: html_document
+date: "2026-04-29"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+```
+
+```{r}
+ptyr_quantification_raw <- read_csv("../Data/WT_ptyrquantification_pav_vsg.csv")
+```
+
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+ptyr_quantification <- ptyr_quantification_raw %>%
+  group_by(Genotype, Replicate, Category) %>%
+  summarise(Positive_Structures = mean(Positive_Structures, na.rm = TRUE))
+```
+```{r}
+ptyr_quantification <- ptyr_quantification %>%
+  group_by(Genotype, Replicate) %>%
+  mutate(Percent = Positive_Structures / sum(Positive_Structures) * 100)
+```
+
+```{r}
+ggplot(ptyr_quantification, aes(x = Replicate, y = Percent, fill = Category)) +
+  geom_col() +
+  ylab("Percentage") +
+  theme_minimal()
+```
+
+```{r}
+ptyr_quantification_raw %>%
+  filter(Category %in% c("ptyr_vsg", "vsg")) %>%
+  group_by(Replicate, Category) %>%
+  summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+  group_by(Replicate) %>%
+  mutate(Percent = n / sum(n) * 100) %>%
+  ungroup() %>%
+  group_by(Category) %>%
+  summarise(
+    Mean = mean(Percent),
+    SD = sd(Percent),
+    .groups = "drop"
+  )
+```
+
+```{r}
+ptyr_quantification_raw %>%
+  filter(Category %in% c("ptyr_vsg", "vsg")) %>%
+  group_by(Replicate, Category) %>%
+  summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+  group_by(Replicate) %>%
+  mutate(Percent = n / sum(n) * 100) 
+```
+
+```{r}
+ptyr_quantification_raw %>%
+  filter(Category %in% c("pav_vsg", "ptyr_pav_vsg")) %>%
+  group_by(Replicate, Category) %>%
+  summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+  group_by(Replicate) %>%
+  mutate(Percent = n / sum(n) * 100) %>%
+  ungroup() %>%
+  group_by(Category) %>%
+  summarise(
+    Mean = mean(Percent),
+    SD = sd(Percent),
+    .groups = "drop"
+  )
+```
+
+```{r}
+ptyr_vsg <-rbind(
+  ptyr_quantification_raw %>%
+    filter(Category %in% c("ptyr_vsg", "vsg")) %>%
+    group_by(Replicate, Category) %>%
+    summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+    group_by(Replicate) %>%
+    mutate(
+      Percent = n / sum(n) * 100),
+
+  ptyr_quantification_raw %>%
+    filter(Category %in% c("pav_vsg", "ptyr_pav_vsg")) %>%
+    group_by(Replicate, Category) %>%
+    summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+    group_by(Replicate) %>%
+    mutate(Percent = n / sum(n) * 100)
+)
+ptyr_vsg
+```
+
+
+
+```{r}
+ptyr_vsg$Category <- factor(ptyr_vsg$Category, levels = c("vsg", "ptyr_vsg", "pav_vsg", "ptyr_pav_vsg"))
+
+ptyr_vsg %>% filter(Category %in% c("ptyr_vsg", "ptyr_pav_vsg")) %>% 
+  ggplot(aes(x = Category, y = Percent)) + 
+  geom_boxplot(fill = "grey", 
+               linewidth = 0.9) + 
+   geom_jitter(
+    aes(x = Category, y = Percent, colour = as.factor(Replicate)),
+    width = 0.2, height = 0, size = 3, alpha = 0.8
+  ) +
+  xlab(NULL) +
+  ylab("Percent that are pTyr+") +
+  scale_x_discrete(labels = c("Pav-, Vsg+", "Pav+, Vsg+")) +
+  scale_y_continuous(limits = c(0,100)) +
+  theme_prism() +
+  theme(legend.position = "none")
+
+ggsave("../Results/pTyr_vs_vsg.pdf", width = 4, height = 5, units = "in")
+```

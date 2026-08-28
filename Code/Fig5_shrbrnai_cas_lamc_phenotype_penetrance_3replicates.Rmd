@@ -1,0 +1,45 @@
+---
+title: "shrbrnai_cas_lamc_phenotype_penetrance_3replicates"
+output: html_document
+date: "2026-01-15"
+---
+
+
+```{r}
+library(tidyverse)
+library(ggprism)
+```
+
+```{r}
+shrbrnai_cas_lamc_phenotype_penetrances <- read_csv("../Data/shrbrnai_cas_lamc_phenotype_penetrance_3replicates.csv")
+```
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+shrbrnai_cas_lamc_phenotype_penetrances <- shrbrnai_cas_lamc_phenotype_penetrances %>%
+  mutate(phenotype_penetrance = (`Phenotype Penetrance` / Total_Germaria)* 100)
+```
+
+```{r}
+shrbrnai_cas_lamc_phenotype_penetrances %>%
+  ggplot(aes(x = Group, y = phenotype_penetrance, fill=`Cell Marker`)) + 
+  scale_y_continuous(labels = scales::percent_format(scale = 1), limits = c(0, 100)) +
+  geom_boxplot(aes(color = `Cell Marker`), fill = "white") +
+  geom_jitter(position= position_jitterdodge(jitter.width= 0.2, dodge.width = 0.75), alpha= 0.8) +
+  theme_prism() +
+  xlab(NULL) +
+  ylab("% of Cas and LamC+ Follicle Cell Increase")
+```
+
+```{r}
+ggsave("../Results/shrbrnai_cas_lamc_phenotype_penetrance_3replicates.pdf", width= 6, height= 6)
+```
+
+```{r}
+cas <- shrbrnai_cas_lamc_phenotype_penetrances %>% filter(`Cell Marker` == "Cas")
+
+t.test(phenotype_penetrance ~ Group, data = cas)
+```
+

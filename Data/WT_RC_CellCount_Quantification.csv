@@ -1,0 +1,76 @@
+File name,Genotype,Replicate,Category,RC_Count,Cell_Count
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_002,WT,1,vsg,11,83
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_003,WT,1,vsg,34,118
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_004,WT,1,vsg,15,70
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_005,WT,1,vsg,21,58
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_006,WT,1,vsg,14,60
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_002,WT,1,"vsg, pav",28,83
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_003,WT,1,"vsg, pav",29,118
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_004,WT,1,"vsg, pav",12,70
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_005,WT,1,"vsg, pav",11,58
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_006,WT,1,"vsg, pav",12,60
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_002,WT,1,"pav, vsg, pnut",4,83
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_003,WT,1,"pav, vsg, pnut",15,118
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_004,WT,1,"pav, vsg, pnut",9,70
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_005,WT,1,"pav, vsg, pnut",12,58
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_006,WT,1,"pav, vsg, pnut",11,60
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_002,WT,1,pav,7,83
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_003,WT,1,pav,16,118
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_004,WT,1,pav,7,70
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_005,WT,1,pav,6,58
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_006,WT,1,pav,8,60
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_002,WT,1,"pav, pnut",3,83
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_003,WT,1,"pav, pnut",6,118
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_004,WT,1,"pav, pnut",2,70
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_005,WT,1,"pav, pnut",2,58
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no1_006,WT,1,"pav, pnut",4,60
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,2,vsg,34,100
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_003,WT,2,vsg,41,140
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_004,WT,2,vsg,25,89
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_005,WT,2,vsg,15,74
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_006,WT,2,vsg,32,99
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,2,"vsg, pav",32,100
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_003,WT,2,"vsg, pav",33,140
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_004,WT,2,"vsg, pav",20,89
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_005,WT,2,"vsg, pav",16,74
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_006,WT,2,"vsg, pav",25,99
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,2,"pav, vsg, pnut",10,100
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_003,WT,2,"pav, vsg, pnut",19,140
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_004,WT,2,"pav, vsg, pnut",15,89
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_005,WT,2,"pav, vsg, pnut",8,74
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_006,WT,2,"pav, vsg, pnut",9,99
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,2,pav,17,100
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_003,WT,2,pav,23,140
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_004,WT,2,pav,13,89
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_005,WT,2,pav,12,74
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_006,WT,2,pav,15,99
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,2,"pav, pnut",9,100
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_003,WT,2,"pav, pnut",12,140
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_004,WT,2,"pav, pnut",3,89
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_005,WT,2,"pav, pnut",3,74
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_006,WT,2,"pav, pnut",8,99
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no2_001,WT,3,vsg,21,96
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_002,WT,3,vsg,23,84
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_003,WT,3,vsg,37,95
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_004,WT,3,vsg,27,79
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_006,WT,3,vsg,29,77
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_001,WT,3,"vsg, pav",15,96
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_002,WT,3,"vsg, pav",10,84
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_003,WT,3,"vsg, pav",20,95
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_004,WT,3,"vsg, pav",18,79
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_006,WT,3,"vsg, pav",18,77
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_001,WT,3,"pav, vsg, pnut",9,96
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_002,WT,3,"pav, vsg, pnut",10,84
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_003,WT,3,"pav, vsg, pnut",8,95
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_004,WT,3,"pav, vsg, pnut",10,79
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_006,WT,3,"pav, vsg, pnut",8,77
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_001,WT,3,pav,18,96
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_002,WT,3,pav,14,84
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_003,WT,3,pav,19,95
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_004,WT,3,pav,19,79
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_006,WT,3,pav,9,77
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_001,WT,3,"pav, pnut",7,96
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_002,WT,3,"pav, pnut",8,84
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_003,WT,3,"pav, pnut",6,95
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_004,WT,3,"pav, pnut",6,79
+pavmcherry_vsgGFP_GFPRFPpnut_slide05272026_no3_006,WT,3,"pav, pnut",5,77

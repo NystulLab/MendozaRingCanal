@@ -1,0 +1,79 @@
+---
+title: "pnutrnai_vsgrings_totalcells"
+output: html_document
+date: "2026-02-27"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+```
+
+```{r}
+pnutrnai_vsgrings_totalcells <- read_csv("../Data/pnutrnai_vsgrings_totalcells.csv")
+```
+```{r}
+show_col_types = FALSE
+```
+
+```{r}
+pnutrnai_vsgrings_totalcells <- pnutrnai_vsgrings_totalcells %>%
+  mutate(ratio = (VsgRings / TotalCells))
+```
+
+```{r}
+pnutrnai_vsgrings_totalcells_summary <- pnutrnai_vsgrings_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(ratio = mean(ratio, na.rm = TRUE), TotalCell_mean = mean(TotalCells), TotalCell_sd = sd(TotalCells))
+```
+
+```{r}
+stat_results <- pnutrnai_vsgrings_totalcells_summary %>%
+  dplyr::ungroup() %>%
+  rstatix::t_test(ratio ~ Group) %>% 
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 0.5, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+ggplot() +
+  scale_y_continuous(limits = c(0, 2)) +
+  geom_boxplot(
+    data = pnutrnai_vsgrings_totalcells_summary,
+    aes(x = Group, y = ratio), 
+    fill = "grey85",
+    linewidth = 0.9,
+    outlier.shape = NA
+  ) +
+  geom_jitter(
+    data = pnutrnai_vsgrings_totalcells,
+    aes(x = Group, y = ratio, colour = as.factor(Replicate)),
+    width = 0.2, height = 0, size = 3, alpha = 0.8
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  stat_pvalue_manual(
+    stat_results,
+    label = "p.signif",
+    tip.length = 0.05,
+    bracket.size = 0.7,
+    hide.ns = TRUE
+  ) +
+  theme_prism() +
+  xlab(NULL) +
+  ylab("Vsg RC to Total Follicle Cell Ratio") +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+ggsave("../Results/pnutrnai_vsgrings_totalcells.pdf", width= 5, height= 7)
+```
+
+```{r}
+pnutrnai_vsgrings_totalcells_summary %>% 
+  group_by(Group) %>% 
+  summarise(Mean = mean(ratio))
+```
+
