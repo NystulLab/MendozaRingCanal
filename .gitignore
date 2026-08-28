@@ -1,0 +1,43 @@
+########################
+# R / RStudio
+########################
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+########################
+# macOS
+########################
+.DS_Store
+
+########################
+# Python / Jupyter
+########################
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+
+########################
+# Cluster logs & scratch
+########################
+/WyntonLogs/*
+!/WyntonLogs/.gitkeep
+
+########################
+# Large raw files (not tracked)
+########################
+/LargeFiles/*
+!/LargeFiles/.gitkeep
+
+/LargeImages/*
+!/LargeImages/.gitkeep
+!/LargeImages/README.md
+
+########################
+# Optional local-only areas (edit as needed)
+########################
+# Data/raw/*      # uncomment if you create Data/raw for untracked raw data
+# Results/tmp/*   # uncomment if you create Results/tmp for untracked junk
+
