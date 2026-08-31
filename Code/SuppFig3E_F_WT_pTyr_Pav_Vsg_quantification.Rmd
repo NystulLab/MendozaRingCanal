@@ -1,0 +1,118 @@
+---
+title: "Supp. Fig. 3E/F - WT pTyr, Pav, and Vsg quantification"
+output: null
+date: "2026-04-29"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Supp. Fig. 3E/F: load WT pTyr/Pav/Vsg ring canal counts.
+
+data_file <- "../Data/SuppFig3E_F_WT_pTyr_Pav_Vsg_quantification.csv"
+catefory_output_file <- "../Results/SuppFig 3E.pdf"
+output_file <- "../Results/SuppFig3F_WT_pTyr_among_Vsg_RCs.pdf"
+
+ptyr_quantification_raw <- read_analysis_csv(data_file)
+```
+
+```{r}
+# Supp. Fig. 3E: calculate category percentages by replicate for the stacked
+# ring canal composition plot.
+
+ptyr_quantification <- ptyr_quantification_raw %>%
+  group_by(Genotype, Replicate, Category) %>%
+  summarise(
+    Positive_Structures = mean(Positive_Structures, na.rm = TRUE),
+    .groups = "drop_last"
+  ) %>%
+  group_by(Genotype, Replicate) %>%
+  mutate(Percent = 100 * Positive_Structures / sum(Positive_Structures)) %>%
+  ungroup()
+```
+
+```{r}
+# Supp. Fig. 3E: plot all pTyr/Pav/Vsg category percentages by replicate.
+
+ggplot(ptyr_quantification, aes(x = Replicate, y = Percent, fill = Category)) +
+  geom_col() +
+  labs(x = NULL, y = NULL, title = "Percentage") 
+
+ggsave(catefory_output_file)
+```
+
+```{r}
+# Supp. Fig. 3F: helper for pairwise denominators used to ask what fraction of
+# Vsg+ structures are pTyr+ with or without Pav.
+
+percent_within_comparison <- function(data, categories) {
+  data %>%
+    filter(Category %in% categories) %>%
+    group_by(Replicate, Category) %>%
+    summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+    group_by(Replicate) %>%
+    mutate(Percent = 100 * n / sum(n)) %>%
+    ungroup()
+}
+```
+
+```{r}
+# Supp. Fig. 3F: calculate pTyr+ fraction among Pav-, Vsg+ structures.
+
+vsg_only_comparison <- percent_within_comparison(
+  ptyr_quantification_raw,
+  categories = c("ptyr_vsg", "vsg")
+)
+
+summarize_mean_sd(vsg_only_comparison, group_cols = "Category", value_col = Percent)
+```
+
+```{r}
+# Supp. Fig. 3F: calculate pTyr+ fraction among Pav+, Vsg+ structures.
+
+pav_vsg_comparison <- percent_within_comparison(
+  ptyr_quantification_raw,
+  categories = c("pav_vsg", "ptyr_pav_vsg")
+)
+
+summarize_mean_sd(pav_vsg_comparison, group_cols = "Category", value_col = Percent)
+```
+
+```{r}
+# Supp. Fig. 3F: combine the pairwise comparisons for plotting.
+
+ptyr_vsg <- bind_rows(vsg_only_comparison, pav_vsg_comparison) %>%
+  mutate(
+    Category = factor(
+      Category,
+      levels = c("vsg", "ptyr_vsg", "pav_vsg", "ptyr_pav_vsg")
+    )
+  )
+ptyr_vsg
+```
+
+
+
+```{r}
+# Supp. Fig. 3F: plot pTyr+ percentages among Pav-, Vsg+ and Pav+, Vsg+ rings.
+
+ptyr_positive_plot_data <- ptyr_vsg %>%
+  filter(Category %in% c("ptyr_vsg", "pav_vsg")) %>%
+  mutate(Category = factor(Category, levels = c("ptyr_vsg", "pav_vsg")))
+
+plot_box_jitter(
+  data = ptyr_positive_plot_data,
+  x = Category,
+  y = Percent,
+  plot_title = "Percent that are pTyr+",
+  y_limits = c(0, 100),
+  x_labels = c("Pav-, Vsg+", "Pav+, Vsg+"),
+  box_fill = "grey"
+)
+
+ggsave(output_file, width = 2, height = 2.5, units = "in", device = cairo_pdf)
+```

@@ -1,0 +1,83 @@
+---
+title: "Fig. 1D - WT germarium and late-stage ring canal composition"
+output: null
+---
+
+Graphing of ring canal compositions in germaria and late-stage follicles.
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+data_file <- "../Data/Fig1D_WT_germarium_late_stage_RC_composition.csv"
+output_file <- "../Results/Fig1D_WT_germarium_late_stage_RC_composition.pdf"
+
+germarium_late_stage <- read_analysis_csv(data_file)
+```
+
+```{r}
+# Fig. 1D: calculate the percentage of each ring canal class in each sample.
+# Collapse Pnut+ Pav/Vsg rings with Pav/Vsg rings so the comparison focuses on
+# Pav and Vsg ring canal composition across stages.
+
+germarium_late_stage_summary <- germarium_late_stage %>%
+  filter(!Category %in% c("pnut", "pav_pnut")) %>%
+  mutate(RCs = recode(Category, "pav_vsg_pnut" = "pav_vsg")) %>%
+  group_by(FileName, Stage, RCs) %>%
+  summarise(
+    Count = sum(Count, na.rm = TRUE),
+    .groups = "drop_last"
+  ) %>%
+  group_by(FileName, Stage) %>%
+  mutate(
+    Total = sum(Count),
+    Percent = 100 * Count / Total
+  ) %>%
+  ungroup()
+```
+
+```{r}
+# Fig. 1D: plot ring canal class percentages in germaria and late follicles.
+
+ggplot(germarium_late_stage_summary, aes(x = RCs, y = Percent, fill = Stage)) +
+  scale_y_continuous(labels = scales::percent_format(scale = 1), limits = c(0, 100)) +
+  geom_boxplot(aes(color = Stage), fill = "white", linewidth = 0.35, outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75),
+    alpha = 0.8,
+    size = 0.5
+  ) +
+  labs(
+    x = NULL,
+    y = NULL,
+    title = "Composition of ring canals at\nearly and late stages"
+  ) +
+  scale_x_discrete(labels = c("Pav+,Vsg-", "Pav+,Vsg+", "Pav-,Vsg+")) +
+  manuscript_theme(base_family = "Arial") +
+  theme(
+    legend.position = c(0.3, 0.95),
+    legend.justification = c(1, 1),
+    legend.background = element_rect(fill = scales::alpha("white", 0.85), color = NA),
+    legend.key.size = unit(0.25, "cm"),
+    legend.spacing.y = unit(0.01, "cm"),
+    legend.margin = margin(1, 2, 1, 2)
+  )
+```
+
+```{r}
+ggsave(output_file, width = 2.75, height = 2, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 1D: summary values for the plotted percentages.
+
+summarize_mean_sd(
+  germarium_late_stage_summary,
+  group_cols = c("Stage", "RCs"),
+  value_col = Percent
+)
+```

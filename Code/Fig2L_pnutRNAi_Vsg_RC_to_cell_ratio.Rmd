@@ -1,0 +1,75 @@
+---
+title: "Fig. 2L - Pnut RNAi Vsg+ ring canal-to-cell ratio"
+output: null
+date: "2026-02-27"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Fig. 2L: calculate Vsg+ ring canal-to-follicle-cell ratio for each germarium.
+
+data_file <- "../Data/Fig2L_pnutRNAi_Vsg_RC_to_cell_ratio.csv"
+output_file <- "../Results/Fig2L_pnutRNAi_Vsg_RC_to_cell_ratio.pdf"
+
+pnutrnai_vsgrings_totalcells <- read_analysis_csv(data_file) %>%
+  mutate(Vsg_Ring_to_Cell_Ratio = VsgRings / TotalCells)
+```
+
+```{r}
+# Fig. 2L: average ratios within each replicate for statistical testing.
+# Individual germaria are shown as points in the plot.
+
+pnutrnai_vsgrings_totalcells_summary <- pnutrnai_vsgrings_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(
+    Vsg_Ring_to_Cell_Ratio = mean(Vsg_Ring_to_Cell_Ratio, na.rm = TRUE),
+    TotalCell_Mean = mean(TotalCells, na.rm = TRUE),
+    TotalCell_SD = sd(TotalCells, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Fig. 2L: compare replicate means between control and pnut RNAi.
+
+stat_results <- pnutrnai_vsgrings_totalcells_summary %>%
+  rstatix::t_test(Vsg_Ring_to_Cell_Ratio ~ Group) %>%
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 0.5, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+# Fig. 2L: plot Vsg+ ring canal-to-cell ratios.
+
+plot_box_jitter(
+  data = pnutrnai_vsgrings_totalcells,
+  summary_data = pnutrnai_vsgrings_totalcells_summary,
+  x = Group,
+  y = Vsg_Ring_to_Cell_Ratio,
+  plot_title = "Vsg RC to total follicle cell ratio",
+  y_limits = c(0, 2),
+  p_values = stat_results
+)
+```
+
+
+```{r}
+ggsave(output_file, width = 2, height = 3, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 2L: manuscript summary values for replicate means.
+
+summarize_mean_sd(
+  pnutrnai_vsgrings_totalcells_summary,
+  group_cols = "Group",
+  value_col = Vsg_Ring_to_Cell_Ratio
+)
+```

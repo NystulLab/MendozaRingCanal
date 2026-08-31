@@ -1,0 +1,233 @@
+---
+title: "Fig. 1E/L and Supp. Fig. 2E - WT ring canal cell-count quantification"
+output: null
+date: "2026-06-17"
+---
+
+Code to graph and calculate manuscript summary values for Mendoza et al.,
+Fig. 1E/L and Supplemental Fig. 2E.
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(stringr)
+source("analysis_helpers.R")
+```
+
+```{r}
+data_file <- "../Data/Fig1E_L_SuppFig2E_WT_RC_cell_count_quantification.csv"
+combined_output_file <- "../Results/Fig1E_WT_combined_RC_to_cell_ratio.pdf"
+category_output_file <- "../Results/Fig1L_WT_RC_to_cell_ratio_by_marker.pdf"
+pnut_output_file <- "../Results/SuppFig2E_WT_Pnut_among_Pav_Vsg_RCs.pdf"
+
+wt_ring_counts <- read_analysis_csv(data_file)
+```
+
+```{r}
+# Fig. 1E/L and Supp. Fig. 2E: calculate ring canal-to-cell ratios and
+# collapse Pnut+ categories where needed for Pav/Vsg composition summaries.
+
+wt_ring_counts <- wt_ring_counts %>%
+  mutate(
+    RC_to_Cell = RC_Count / Cell_Count,
+    CombinedCategory = case_when(
+      Category == "pav, pnut" ~ "pav",
+      Category %in% c("pav, vsg, pnut", "vsg, pav") ~ "pav, vsg",
+      TRUE ~ Category
+    )
+  )
+```
+
+```{r}
+# Fig. 1E: combine Pnut+ and Pnut- categories to compare Pav and Vsg ring
+# canal classes.
+
+wt_ring_counts_combined <- wt_ring_counts %>%
+  group_by(`File name`, Replicate, CombinedCategory) %>%
+  summarise(RC_to_Cell_Sum = sum(RC_to_Cell, na.rm = TRUE), .groups = "drop")
+```
+
+```{r}
+# Fig. 1E: plot WT ring canal-to-cell ratios for Pav+, Pav+/Vsg+, and Vsg+
+# categories after collapsing Pnut status.
+
+plot_box_jitter(
+  data = wt_ring_counts_combined,
+  x = CombinedCategory,
+  y = RC_to_Cell_Sum,
+  plot_title = "Ring canal to cell ratio",
+  x_labels = c("Pav+,Vsg-", "Pav+,Vsg+", "Pav-,Vsg+"),
+  jitter_width = 0.15
+)
+
+ggsave(combined_output_file, width = 2.75, height = 2, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 1E: replicate-level summary values for the plotted ratios.
+
+wt_ring_counts_combined %>%
+  group_by(Replicate, CombinedCategory) %>%
+  summarise(Replicate_Mean = mean(RC_to_Cell_Sum, na.rm = TRUE), .groups = "drop") %>%
+  summarize_mean_sd(group_cols = "CombinedCategory", value_col = Replicate_Mean)
+```
+
+```{r}
+# Fig. 1L/manuscript: ring canal-to-cell ratios using figure-panel labels.
+
+ring_ratio_by_replicate <- wt_ring_counts_combined %>%
+  mutate(
+    Measurement = recode(
+      CombinedCategory,
+      "pav" = "Pav+, Vsg-",
+      "pav, vsg" = "Pav+, Vsg+",
+      "vsg" = "Pav-, Vsg+"
+    )
+  ) %>%
+  group_by(Replicate, Measurement) %>%
+  summarise(Replicate_Mean = mean(RC_to_Cell_Sum, na.rm = TRUE), .groups = "drop")
+
+summarize_mean_sd(
+  ring_ratio_by_replicate,
+  group_cols = "Measurement",
+  value_col = Replicate_Mean
+)
+```
+
+```{r}
+# Fig. 1L: plot WT ring canal-to-cell ratios separated by marker combination.
+
+wt_ring_counts_by_category <- wt_ring_counts %>%
+  mutate(
+    Category = factor(
+      Category,
+      levels = c("pav", "pav, pnut", "pav, vsg, pnut", "vsg, pav", "vsg")
+    )
+  )
+
+plot_box_jitter(
+  data = wt_ring_counts_by_category,
+  x = Category,
+  y = RC_to_Cell,
+  plot_title = "Ring canal to cell ratio",
+  x_label = NULL,
+  x_labels = c("Pav+", "Pav+, Pnut+", "Pav+, Vsg+, Pnut+", "Pav+, Vsg+", "Vsg+"),
+  jitter_width = 0.15
+)
+
+ggsave(category_output_file, width = 4.5, height = 3.5, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Supp. Fig. 2E: calculate Pav/Vsg overlap and Pnut positivity for each
+# germarium/file.
+
+ring_percent_by_file <- wt_ring_counts %>%
+  group_by(`File name`, Replicate) %>%
+  summarise(
+    PavTotal = sum(RC_Count[str_detect(Category, fixed("pav"))], na.rm = TRUE),
+    VsgTotal = sum(RC_Count[str_detect(Category, fixed("vsg"))], na.rm = TRUE),
+    PavVsgTotal = sum(RC_Count[Category %in% c("vsg, pav", "pav, vsg, pnut")], na.rm = TRUE),
+    PavNoVsgTotal = sum(RC_Count[Category %in% c("pav", "pav, pnut")], na.rm = TRUE),
+    PavNoVsgPnut = sum(RC_Count[Category == "pav, pnut"], na.rm = TRUE),
+    PavVsgPnut = sum(RC_Count[Category == "pav, vsg, pnut"], na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(
+    PavVsg_among_Pav = if_else(PavTotal > 0, 100 * PavVsgTotal / PavTotal, NA_real_),
+    PavVsg_among_Vsg = if_else(VsgTotal > 0, 100 * PavVsgTotal / VsgTotal, NA_real_),
+    Pnut_among_PavNoVsg = if_else(PavNoVsgTotal > 0, 100 * PavNoVsgPnut / PavNoVsgTotal, NA_real_),
+    Pnut_among_PavVsg = if_else(PavVsgTotal > 0, 100 * PavVsgPnut / PavVsgTotal, NA_real_)
+  )
+```
+
+```{r}
+# Supp. Fig. 2E: average file-level percentages within each replicate for the
+# plotted distribution.
+
+ring_percent_by_replicate <- ring_percent_by_file %>%
+  group_by(Replicate) %>%
+  summarise(
+    PavVsg_among_Pav = mean(PavVsg_among_Pav, na.rm = TRUE),
+    PavVsg_among_Vsg = mean(PavVsg_among_Vsg, na.rm = TRUE),
+    Pnut_among_PavNoVsg = mean(Pnut_among_PavNoVsg, na.rm = TRUE),
+    Pnut_among_PavVsg = mean(Pnut_among_PavVsg, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Supp. Fig. 2E/manuscript: percentages are pooled within each replicate, then
+# summarized across replicates.
+
+ring_percent_pooled_by_replicate <- wt_ring_counts %>%
+  group_by(Replicate) %>%
+  summarise(
+    Pnut_among_PavNoVsg =
+      100 * sum(RC_Count[Category == "pav, pnut"], na.rm = TRUE) /
+      sum(RC_Count[Category %in% c("pav", "pav, pnut")], na.rm = TRUE),
+    Pnut_among_PavVsg =
+      100 * sum(RC_Count[Category == "pav, vsg, pnut"], na.rm = TRUE) /
+      sum(RC_Count[Category %in% c("vsg, pav", "pav, vsg, pnut")], na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ring_percent_pooled_by_replicate %>%
+  pivot_longer(
+    cols = -Replicate,
+    names_to = "Measurement",
+    values_to = "ReplicatePercent"
+  ) %>%
+  summarize_mean_sd(group_cols = "Measurement", value_col = ReplicatePercent)
+```
+
+```{r}
+# Plotting values: percentages are calculated for each germarium/file so the
+# plot shows the distribution of individual samples.
+
+ring_percent_by_replicate %>%
+  pivot_longer(
+    cols = -Replicate,
+    names_to = "Measurement",
+    values_to = "ReplicateMean"
+  ) %>%
+  summarize_mean_sd(group_cols = "Measurement", value_col = ReplicateMean)
+```
+
+```{r}
+# Supp. Fig. 2E: prepare file-level percentages for plotting individual samples.
+
+ring_percent_long <- ring_percent_by_file %>%
+  select(`File name`, Replicate, Pnut_among_PavNoVsg, Pnut_among_PavVsg) %>%
+  pivot_longer(
+    cols = -c(`File name`, Replicate),
+    names_to = "Category",
+    values_to = "Percent"
+  )
+```
+
+```{r}
+# Supp. Fig. 2E: plot the percentage of Pav+, Vsg- and Pav+, Vsg+ ring canals
+# that are also Pnut+.
+
+suppfig2e_plot <- plot_box_jitter(
+  data = ring_percent_long,
+  x = Category,
+  y = Percent,
+  plot_title = "Percent that are Pnut+",
+  x_labels = c("Pav+, Vsg-", "Pav+, Vsg+"),
+  box_fill = "grey",
+  jitter_width = 0.15
+)
+
+suppfig2e_plot
+
+ggsave(
+  pnut_output_file,
+  plot = suppfig2e_plot,
+  width = 2,
+  height = 2.5,
+  units = "in",
+  device = cairo_pdf
+)
+```

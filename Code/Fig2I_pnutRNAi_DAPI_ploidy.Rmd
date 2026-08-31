@@ -1,0 +1,65 @@
+---
+title: "Fig. 2I - Pnut RNAi DAPI ploidy"
+output: null
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(scales)
+source("analysis_helpers.R")
+
+data_file <- "../Data/Fig2I_pnutRNAi_DAPI_ploidy.csv"
+output_file <- "../Results/Fig2I_pnutRNAi_DAPI_ploidy.pdf"
+
+ploidy <- read_analysis_csv(data_file)
+```
+
+```{r}
+# Fig. 2I: calculate mean DAPI intensity and fold change relative to control.
+
+ploidy_summary <- ploidy %>%
+  group_by(Genotype) %>%
+  summarise(
+    Mean = mean(DAPI_total, na.rm = TRUE),
+    SD = sd(DAPI_total, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  mutate(FoldChange = Mean / Mean[Genotype == "Control"])
+ploidy_summary
+```
+
+```{r}
+# Fig. 2I: test whether DAPI total intensity differs between control and pnut RNAi.
+
+t.test(DAPI_total ~ Genotype, data = ploidy)
+```
+
+```{r}
+# Fig. 2I: plot DAPI total intensity distributions by genotype.
+
+ggplot(ploidy, aes(x = Genotype, y = DAPI_total)) +
+  geom_violin(fill = "grey85", linewidth = 0.35) +
+  geom_jitter(
+    aes(colour = as.factor(Sample)),
+    width = 0.15, size = 0.5, alpha = 0.7
+  ) +
+  scale_color_brewer(palette = "Dark2") +
+  stat_summary(
+    fun.min = mean,
+    fun = mean,
+    fun.max = mean,
+    geom = "crossbar",
+    width = 0.4,
+    linewidth = 0.35,
+    color = "grey40"
+  ) +
+  manuscript_theme() +
+  theme(legend.position = "none") +
+  scale_y_continuous(labels = label_number(scale = 1e-7)) +
+  scale_fill_discrete(
+    labels = c("Control" = "Control", "Experimental" = "Pnut RNAi")
+  ) +
+  labs(x = NULL, y = "1 x 10^7 A.U.", title = "DAPI total intensity")
+ggsave(output_file, width = 2.5, height = 3, units = "in", device = cairo_pdf)
+```

@@ -1,0 +1,71 @@
+---
+title: "Supp. Fig. 4H - Pnut RNAi EdU-positive follicle cells"
+output: null
+date: "2026-03-05"
+---
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Supp. Fig. 4H: calculate EdU-positive follicle cell percentage for each germarium.
+
+data_file <- "../Data/SuppFig4H_pnutRNAi_EdU_positive_cells.csv"
+output_file <- "../Results/SuppFig4H_pnutRNAi_EdU_positive_cells.pdf"
+
+pnutrnai_edupositivecells_totalcells <- read_analysis_csv(data_file) %>%
+  mutate(Edu_Positive_Percent = 100 * EduPositiveCells / TotalCells)
+```
+
+```{r}
+# Supp. Fig. 4H: average EdU-positive percentages within each replicate for testing.
+# Individual germaria are shown as points in the plot.
+
+pnutrnai_edupositivecells_totalcells_summary <- pnutrnai_edupositivecells_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(
+    Edu_Positive_Percent = mean(Edu_Positive_Percent, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Supp. Fig. 4H: compare replicate means between control and pnut RNAi.
+
+stat_results <- pnutrnai_edupositivecells_totalcells_summary %>%
+  group_by(Genotype) %>%
+  rstatix::t_test(Edu_Positive_Percent ~ Group) %>%
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 0.5, dodge = 0.8)
+print(stat_results)
+```
+```{r}
+# Supp. Fig. 4H: plot EdU-positive follicle cell percentages.
+
+plot_box_jitter(
+  data = pnutrnai_edupositivecells_totalcells,
+  summary_data = pnutrnai_edupositivecells_totalcells_summary,
+  x = Group,
+  y = Edu_Positive_Percent,
+  plot_title = "% of Edu+ follicle cells",
+  y_limits = c(0, 100),
+  y_labels = scales::percent_format(scale = 1),
+  p_values = stat_results
+)
+```
+```{r}
+ggsave(output_file, width = 3, height = 2.5, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Supp. Fig. 4H: manuscript summary values for replicate means.
+
+summarize_mean_sd(
+  pnutrnai_edupositivecells_totalcells_summary,
+  group_cols = "Group",
+  value_col = Edu_Positive_Percent
+)
+```

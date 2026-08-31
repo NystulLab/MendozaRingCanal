@@ -1,0 +1,75 @@
+---
+title: "Fig. 4F - Shrb RNAi EdU-positive follicle cells"
+output: null
+date: "2026-03-05"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Fig. 4F: calculate EdU-positive follicle cell percentage for each germarium.
+
+data_file <- "../Data/Fig4F_shrbRNAi_EdU_positive_cells.csv"
+output_file <- "../Results/Fig4F_shrbRNAi_EdU_positive_cells.pdf"
+
+shrb_rnai_edupositivecells_totalcells <- read_analysis_csv(data_file) %>%
+  mutate(Edu_Positive_Percent = 100 * EduPositiveCells / TotalCells)
+```
+
+```{r}
+# Fig. 4F: average EdU-positive percentages within each replicate for testing.
+# Individual germaria are shown as points in the plot.
+
+shrb_rnai_edupositivecells_totalcells_summary <- shrb_rnai_edupositivecells_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(
+    Edu_Positive_Percent = mean(Edu_Positive_Percent, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Fig. 4F: compare replicate means between control and shrb RNAi.
+
+stat_results <- shrb_rnai_edupositivecells_totalcells_summary %>%
+  group_by(Genotype) %>%
+  rstatix::t_test(Edu_Positive_Percent ~ Group) %>%
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 1, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+# Fig. 4F: plot EdU-positive follicle cell percentages.
+
+plot_box_jitter(
+  data = shrb_rnai_edupositivecells_totalcells,
+  summary_data = shrb_rnai_edupositivecells_totalcells_summary,
+  x = Group,
+  y = Edu_Positive_Percent,
+  plot_title = "% of Edu+ follicle cells",
+  y_limits = c(0, 50),
+  y_labels = scales::percent_format(scale = 1),
+  p_values = stat_results,
+  bracket_size = 0.3,
+  p_value_size = 2.5
+)
+```
+```{r}
+ggsave(output_file, width = 2, height = 2.5, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 4F: manuscript summary values for replicate means.
+
+summarize_mean_sd(
+  shrb_rnai_edupositivecells_totalcells_summary,
+  group_cols = "Group",
+  value_col = Edu_Positive_Percent
+)
+```

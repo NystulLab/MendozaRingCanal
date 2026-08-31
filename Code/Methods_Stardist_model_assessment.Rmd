@@ -1,0 +1,72 @@
+---
+title: "Methods - Stardist model assessment"
+output: null
+---
+
+Analysis of Stardist model accuracy using manual corrections of segmentation
+results from control samples in the Shrb and Pnut RNAi experiments.
+
+```{r}
+library(tidyverse)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Methods/segmentation validation: load manually corrected Stardist count data.
+
+groundtruth_2ch_file <- "../Data/Methods_Stardist_DAPI_Fas3_groundtruth_counts.csv"
+output_file <- "../Results/Methods_Stardist_model_assessment.pdf"
+
+groundtruth_2ch <- read_analysis_csv(groundtruth_2ch_file)
+```
+
+```{r}
+# Methods/segmentation validation: calculate precision and recall from true
+# positives, false positives, and false negatives.
+
+calculate_stardist_metrics <- function(data) {
+  data %>%
+    mutate(
+      TruePositive = ModelTL - FalsePos,
+      precision = TruePositive / ModelTL,
+      recall = TruePositive / (TruePositive + FalseNeg)
+    )
+}
+
+groundtruth_2ch <- calculate_stardist_metrics(groundtruth_2ch)
+```
+
+```{r}
+# Methods/segmentation validation: reshape precision and recall for plotting and
+# summaries.
+
+groundtruth_long <- groundtruth_2ch %>%
+  select(Filename, precision, recall) %>%
+  pivot_longer(!Filename, names_to = "Metric", values_to = "Value") %>%
+  mutate(Metric = factor(Metric, levels = c("precision", "recall")))
+```
+
+```{r}
+# Methods/segmentation validation: plot precision and recall for the model used
+# for follicle cell counts.
+
+groundtruth_long %>%
+  ggplot(aes(x = Metric, y = Value)) +
+  geom_boxplot(fill = "grey", linewidth = 0.35, outlier.shape = NA) +
+  manuscript_theme() +
+  theme(legend.position = "none") +
+  scale_y_continuous(limits = c(0, 1)) +
+  labs(x = NULL, y = NULL, title = "Segmentation accuracy")
+
+ggsave(output_file, width = 50, height = 20, units = "mm", device = cairo_pdf)
+```
+
+```{r}
+# Methods/segmentation validation: summary values for precision and recall.
+
+summarize_mean_sd(
+  groundtruth_long,
+  group_cols = "Metric",
+  value_col = Value
+)
+```

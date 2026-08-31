@@ -1,0 +1,75 @@
+---
+title: "Fig. 3E - Shrb RNAi Vsg+ ring canal-to-cell ratio"
+output: null
+date: "2026-03-11"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Fig. 3E: calculate Vsg+ ring canal-to-follicle-cell ratio for each germarium.
+
+data_file <- "../Data/Fig3E_shrbRNAi_Vsg_RC_to_cell_ratio.csv"
+output_file <- "../Results/Fig3E_shrbRNAi_Vsg_RC_to_cell_ratio.pdf"
+
+shrb_rnai_vsgrings_totalcells <- read_analysis_csv(data_file) %>%
+  mutate(Vsg_Ring_to_Cell_Ratio = VsgRings / TotalCells)
+```
+
+```{r}
+# Fig. 3E: average ratios within each replicate for statistical testing.
+# Individual germaria are shown as points in the plot.
+
+shrb_rnai_vsgrings_totalcells_summary <- shrb_rnai_vsgrings_totalcells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(
+    Vsg_Ring_to_Cell_Ratio = mean(Vsg_Ring_to_Cell_Ratio, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Fig. 3E: compare replicate means between control and shrb RNAi.
+
+stat_results <- shrb_rnai_vsgrings_totalcells_summary %>%
+  group_by(Genotype) %>%
+  rstatix::t_test(Vsg_Ring_to_Cell_Ratio ~ Group) %>%
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 2, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+# Fig. 3E: plot Vsg+ ring canal-to-cell ratios.
+
+plot_box_jitter(
+  data = shrb_rnai_vsgrings_totalcells,
+  summary_data = shrb_rnai_vsgrings_totalcells_summary,
+  x = Group,
+  y = Vsg_Ring_to_Cell_Ratio,
+  plot_title = "Vsg+ ring canal to\ntotal follicle cell ratio",
+  y_limits = c(0, 1.5),
+  x_labels = c("Control", "shrb [RNAi]"),
+  p_values = stat_results,
+  bracket_size = 0.3,
+  p_value_size = 2.5
+)
+```
+```{r}
+ggsave(output_file, width = 2.125, height = 3, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 3E: manuscript summary values for replicate means. 
+
+summarize_mean_sd(
+  shrb_rnai_vsgrings_totalcells_summary,
+  group_cols = "Group",
+  value_col = Vsg_Ring_to_Cell_Ratio
+)
+```

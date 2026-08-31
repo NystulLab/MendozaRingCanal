@@ -1,0 +1,120 @@
+---
+title: "Fig. 4C - Shrb RNAi Cas/LamC phenotype penetrance"
+output: null
+date: "2026-01-15"
+---
+
+
+```{r}
+library(tidyverse)
+library(ggprism)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Fig. 4C: calculate phenotype penetrance percentages for Cas and LamC markers.
+
+data_file <- "../Data/Fig4C_shrbRNAi_Cas_LamC_phenotype_penetrance.csv"
+output_file <- "../Results/Fig4C_shrbRNAi_Cas_LamC_phenotype_penetrance.pdf"
+
+shrb_rnai_cas_lamc_phenotype_penetrance <- read_analysis_csv(data_file) %>%
+  mutate(Phenotype_Penetrance_Percent = 100 * `Phenotype Penetrance` / Total_Germaria)
+```
+
+```{r}
+# Fig. 4C: compare phenotype penetrance between control and shrb RNAi for each
+# marker. Fisher's exact test uses the underlying scored counts and handles the
+# complete LamC separation in these data.
+
+stat_results <- shrb_rnai_cas_lamc_phenotype_penetrance %>%
+  group_by(`Cell Marker`) %>%
+  summarise(
+    Control_Positive = sum(`Phenotype Penetrance`[Group == "Control"], na.rm = TRUE),
+    Control_Negative = sum(`No Phenotype`[Group == "Control"], na.rm = TRUE),
+    Shrb_Positive = sum(`Phenotype Penetrance`[Group == "shrbRNAi"], na.rm = TRUE),
+    Shrb_Negative = sum(`No Phenotype`[Group == "shrbRNAi"], na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  rowwise() %>%
+  mutate(
+    p = fisher.test(
+      matrix(
+        c(Control_Positive, Control_Negative, Shrb_Positive, Shrb_Negative),
+        nrow = 2,
+        byrow = TRUE
+      )
+    )$p.value
+  ) %>%
+  ungroup() %>%
+  mutate(
+    p.signif = case_when(
+      p <= 0.0001 ~ "****",
+      p <= 0.001 ~ "***",
+      p <= 0.01 ~ "**",
+      p <= 0.05 ~ "*",
+      TRUE ~ "ns"
+    ),
+    xmin = if_else(`Cell Marker` == "Cas", 0.8125, 1.1875),
+    xmax = if_else(`Cell Marker` == "Cas", 1.8125, 2.1875),
+    y.position = if_else(`Cell Marker` == "Cas", 104, 112),
+    group1 = "Control",
+    group2 = "shrbRNAi"
+  )
+
+stat_results
+```
+
+```{r}
+# Fig. 4C: plot Cas and LamC phenotype penetrance by genotype.
+
+shrb_rnai_cas_lamc_phenotype_penetrance %>%
+  ggplot(aes(x = Group, y = Phenotype_Penetrance_Percent, fill = `Cell Marker`)) +
+  scale_y_continuous(
+    labels = scales::percent_format(scale = 1),
+    limits = c(0, 115),
+    breaks = c(0, 25, 50, 75, 100)
+  ) +
+  geom_boxplot(aes(color = `Cell Marker`), fill = "white", linewidth = 0.35, outlier.shape = NA) +
+  geom_jitter(
+    position = position_jitterdodge(jitter.width = 0.2, dodge.width = 0.75),
+    alpha = 0.8,
+    size = 1.2
+  ) +
+  ggpubr::stat_pvalue_manual(
+    stat_results,
+    label = "p.signif",
+    xmin = "xmin",
+    xmax = "xmax",
+    y.position = "y.position",
+    bracket.size = 0.3,
+    tip.length = 0.03,
+    size = 2.5,
+    family = "Arial",
+    hide.ns = TRUE,
+    inherit.aes = FALSE
+  ) +
+  manuscript_theme() +
+  theme(
+    legend.position = c(0.8, 0.35),
+    legend.justification = c(1, 1),
+    legend.background = element_rect(fill = scales::alpha("white", 0.85), color = NA),
+    legend.key.size = unit(0.25, "cm"),
+    legend.spacing.y = unit(0.01, "cm"),
+    legend.margin = margin(1, 2, 1, 2)
+  ) +
+  labs(x = NULL, y = NULL, title = "% with extra Cas+ or LamC+ cells\n")
+```
+
+```{r}
+ggsave(output_file, width = 2, height = 2.5, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 4C: manuscript summary values for phenotype penetrance.
+
+summarize_mean_sd(
+  shrb_rnai_cas_lamc_phenotype_penetrance,
+  group_cols = c("Group", "Cell Marker"),
+  value_col = Phenotype_Penetrance_Percent
+)
+```

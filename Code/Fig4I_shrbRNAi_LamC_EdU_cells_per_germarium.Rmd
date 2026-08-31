@@ -1,0 +1,75 @@
+---
+title: "Fig. 4I - Shrb RNAi LamC+/EdU+ cells per germarium"
+output: null
+date: "2026-01-15"
+---
+
+```{r}
+library(tidyverse)
+library(ggprism)
+library(ggpubr)
+source("analysis_helpers.R")
+```
+
+```{r}
+# Fig. 4I: load LamC+/EdU+ follicle cell counts by germarium.
+
+data_file <- "../Data/Fig4I_shrbRNAi_LamC_EdU_cells_per_germarium.csv"
+output_file <- "../Results/Fig4I_shrbRNAi_LamC_EdU_cells_per_germarium.pdf"
+
+lamc_positive_cells <- read_analysis_csv(data_file)
+```
+
+```{r}
+# Fig. 4I: average LamC+/EdU+ cell counts within each replicate for testing.
+# Replicates are the statistical unit; each row in the raw data is one germarium.
+
+lamc_positive_cells_summary <- lamc_positive_cells %>%
+  group_by(Genotype, Group, Replicate) %>%
+  summarise(
+    Total_LamC_Cells = sum(Total_LamC_Cells, na.rm = TRUE),
+    Total_Germaria = n(),
+    LamC_Cells_Per_Germarium = Total_LamC_Cells / Total_Germaria,
+    .groups = "drop"
+  )
+```
+
+```{r}
+# Fig. 4I: compare replicate means between control and shrb RNAi.
+
+stat_results <- lamc_positive_cells_summary %>%
+  rstatix::t_test(LamC_Cells_Per_Germarium ~ Group) %>%
+  rstatix::add_significance("p") %>%
+  rstatix::add_xy_position(x = "Group", step.increase = 1.2, dodge = 0.8)
+print(stat_results)
+```
+
+```{r}
+# Fig. 4I: plot LamC+/EdU+ cells per germarium.
+
+plot_box_jitter(
+  data = lamc_positive_cells %>%
+    mutate(LamC_Cells_Per_Germarium = Total_LamC_Cells),
+  summary_data = lamc_positive_cells_summary,
+  x = Group,
+  y = LamC_Cells_Per_Germarium,
+  plot_title = "LamC+, EdU+ follicle cells per germarium",
+  y_limits = c(0, 50),
+  p_values = stat_results,
+  bracket_size = 0.3,
+  p_value_size = 2.5
+)
+```
+```{r}
+ggsave(output_file, width = 2, height = 2.5, units = "in", device = cairo_pdf)
+```
+
+```{r}
+# Fig. 4I: manuscript summary values for replicate means.
+
+summarize_mean_sd(
+  lamc_positive_cells_summary,
+  group_cols = "Group",
+  value_col = LamC_Cells_Per_Germarium
+)
+```
