@@ -108,6 +108,7 @@ plot_box_jitter(
   data = ptyr_positive_plot_data,
   x = Category,
   y = Percent,
+  y_labels = scales::percent_format(scale = 1),
   plot_title = "Percent that are pTyr+",
   y_limits = c(0, 100),
   x_labels = c("Pav-, Vsg+", "Pav+, Vsg+"),

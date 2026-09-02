@@ -22,43 +22,17 @@ shrb_rnai_cas_lamc_phenotype_penetrance <- read_analysis_csv(data_file) %>%
 ```
 
 ```{r}
-# Fig. 4C: compare phenotype penetrance between control and shrb RNAi for each
-# marker. Fisher's exact test uses the underlying scored counts and handles the
-# complete LamC separation in these data.
+# Fig. 4C: compare Cas phenotype penetrance between control and shrb RNAi using
+# replicate-level percentages.
 
 stat_results <- shrb_rnai_cas_lamc_phenotype_penetrance %>%
-  group_by(`Cell Marker`) %>%
-  summarise(
-    Control_Positive = sum(`Phenotype Penetrance`[Group == "Control"], na.rm = TRUE),
-    Control_Negative = sum(`No Phenotype`[Group == "Control"], na.rm = TRUE),
-    Shrb_Positive = sum(`Phenotype Penetrance`[Group == "shrbRNAi"], na.rm = TRUE),
-    Shrb_Negative = sum(`No Phenotype`[Group == "shrbRNAi"], na.rm = TRUE),
-    .groups = "drop"
-  ) %>%
-  rowwise() %>%
+  filter(`Cell Marker` == "Cas") %>%
+  rstatix::t_test(Phenotype_Penetrance_Percent ~ Group) %>%
+  rstatix::add_significance("p") %>%
   mutate(
-    p = fisher.test(
-      matrix(
-        c(Control_Positive, Control_Negative, Shrb_Positive, Shrb_Negative),
-        nrow = 2,
-        byrow = TRUE
-      )
-    )$p.value
-  ) %>%
-  ungroup() %>%
-  mutate(
-    p.signif = case_when(
-      p <= 0.0001 ~ "****",
-      p <= 0.001 ~ "***",
-      p <= 0.01 ~ "**",
-      p <= 0.05 ~ "*",
-      TRUE ~ "ns"
-    ),
-    xmin = if_else(`Cell Marker` == "Cas", 0.8125, 1.1875),
-    xmax = if_else(`Cell Marker` == "Cas", 1.8125, 2.1875),
-    y.position = if_else(`Cell Marker` == "Cas", 104, 112),
-    group1 = "Control",
-    group2 = "shrbRNAi"
+    xmin = 0.8125,
+    xmax = 1.8125,
+    y.position = 104
   )
 
 stat_results
