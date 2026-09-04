@@ -14,7 +14,7 @@ source("analysis_helpers.R")
 # Supp. Fig. 3E/F: load WT pTyr/Pav/Vsg ring canal counts.
 
 data_file <- "../Data/SuppFig3E_F_WT_pTyr_Pav_Vsg_quantification.csv"
-catefory_output_file <- "../Results/SuppFig 3E.pdf"
+category_output_file <- "../Results/SuppFig 3E.pdf"
 output_file <- "../Results/SuppFig3F_WT_pTyr_among_Vsg_RCs.pdf"
 
 ptyr_quantification_raw <- read_analysis_csv(data_file)
@@ -42,42 +42,34 @@ ggplot(ptyr_quantification, aes(x = Replicate, y = Percent, fill = Category)) +
   geom_col() +
   labs(x = NULL, y = NULL, title = "Percentage") 
 
-ggsave(catefory_output_file)
+ggsave(category_output_file)
 ```
 
 ```{r}
 # Supp. Fig. 3F: helper for pairwise denominators used to ask what fraction of
 # Vsg+ structures are pTyr+ with or without Pav.
 
-percent_within_comparison <- function(data, categories) {
-  data %>%
-    filter(Category %in% categories) %>%
+vsg_only_comparison <- ptyr_quantification_raw %>%
+    filter(Category %in% c("ptyr_vsg", "vsg")) %>%
     group_by(Replicate, Category) %>%
     summarise(n = sum(Positive_Structures), .groups = "drop") %>%
     group_by(Replicate) %>%
     mutate(Percent = 100 * n / sum(n)) %>%
     ungroup()
-}
-```
 
-```{r}
-# Supp. Fig. 3F: calculate pTyr+ fraction among Pav-, Vsg+ structures.
-
-vsg_only_comparison <- percent_within_comparison(
-  ptyr_quantification_raw,
-  categories = c("ptyr_vsg", "vsg")
-)
 
 summarize_mean_sd(vsg_only_comparison, group_cols = "Category", value_col = Percent)
 ```
 
 ```{r}
 # Supp. Fig. 3F: calculate pTyr+ fraction among Pav+, Vsg+ structures.
-
-pav_vsg_comparison <- percent_within_comparison(
-  ptyr_quantification_raw,
-  categories = c("pav_vsg", "ptyr_pav_vsg")
-)
+pav_vsg_comparison <- ptyr_quantification_raw %>%
+    filter(Category %in% c("pav_vsg", "ptyr_pav_vsg")) %>%
+    group_by(Replicate, Category) %>%
+    summarise(n = sum(Positive_Structures), .groups = "drop") %>%
+    group_by(Replicate) %>%
+    mutate(Percent = 100 * n / sum(n)) %>%
+    ungroup()
 
 summarize_mean_sd(pav_vsg_comparison, group_cols = "Category", value_col = Percent)
 ```
@@ -101,7 +93,7 @@ ptyr_vsg
 # Supp. Fig. 3F: plot pTyr+ percentages among Pav-, Vsg+ and Pav+, Vsg+ rings.
 
 ptyr_positive_plot_data <- ptyr_vsg %>%
-  filter(Category %in% c("ptyr_vsg", "pav_vsg")) %>%
+  filter(Category %in% c("ptyr_vsg", "ptyr_pav_vsg")) %>%
   mutate(Category = factor(Category, levels = c("ptyr_vsg", "pav_vsg")))
 
 plot_box_jitter(
