@@ -101,7 +101,7 @@ wt_ring_counts_by_category <- wt_ring_counts %>%
   mutate(
     Category = factor(
       Category,
-      levels = c("pav", "pav, pnut", "pav, vsg, pnut", "vsg, pav", "vsg")
+      levels = c("pav, pnut", "pav", "pav, vsg, pnut", "vsg, pav", "vsg")
     )
   )
 
@@ -111,7 +111,7 @@ plot_box_jitter(
   y = RC_to_Cell,
   plot_title = "Ring canal to cell ratio",
   x_label = NULL,
-  x_labels = c("Pav+", "Pav+, Pnut+", "Pav+, Vsg+, Pnut+", "Pav+, Vsg+", "Vsg+"),
+  x_labels = c("Pav+, Pnut+", "Pav+", "Pav+, Vsg+, Pnut+", "Pav+, Vsg+", "Vsg+"),
   jitter_width = 0.15
 )
 
