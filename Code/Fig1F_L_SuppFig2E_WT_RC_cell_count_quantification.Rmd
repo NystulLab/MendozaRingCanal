@@ -1,11 +1,11 @@
 ---
-title: "Fig. 1E/L and Supp. Fig. 2E - WT ring canal cell-count quantification"
+title: "Fig. 1F/L and Supp. Fig. 2E - WT ring canal cell-count quantification"
 output: null
 date: "2026-06-17"
 ---
 
 Code to graph and calculate manuscript summary values for Mendoza et al.,
-Fig. 1E/L and Supplemental Fig. 2E.
+Fig. 1F/L and Supplemental Fig. 2E.
 
 ```{r}
 library(tidyverse)
@@ -15,8 +15,8 @@ source("analysis_helpers.R")
 ```
 
 ```{r}
-data_file <- "../Data/Fig1E_L_SuppFig2E_WT_RC_cell_count_quantification.csv"
-combined_output_file <- "../Results/Fig1E_WT_combined_RC_to_cell_ratio.pdf"
+data_file <- "../Data/Fig1F_L_SuppFig2E_WT_RC_cell_count_quantification.csv"
+combined_output_file <- "../Results/Fig1F_WT_combined_RC_to_cell_ratio.pdf"
 category_output_file <- "../Results/Fig1L_WT_RC_to_cell_ratio_by_marker.pdf"
 pnut_output_file <- "../Results/SuppFig2E_WT_Pnut_among_Pav_Vsg_RCs.pdf"
 
@@ -24,7 +24,7 @@ wt_ring_counts <- read_analysis_csv(data_file)
 ```
 
 ```{r}
-# Fig. 1E/L and Supp. Fig. 2E: calculate ring canal-to-cell ratios and
+# Fig. 1F/L and Supp. Fig. 2F: calculate ring canal-to-cell ratios and
 # collapse Pnut+ categories where needed for Pav/Vsg composition summaries.
 
 wt_ring_counts <- wt_ring_counts %>%
@@ -39,7 +39,7 @@ wt_ring_counts <- wt_ring_counts %>%
 ```
 
 ```{r}
-# Fig. 1E: combine Pnut+ and Pnut- categories to compare Pav and Vsg ring
+# Fig. 1F: combine Pnut+ and Pnut- categories to compare Pav and Vsg ring
 # canal classes.
 
 wt_ring_counts_combined <- wt_ring_counts %>%
@@ -48,7 +48,7 @@ wt_ring_counts_combined <- wt_ring_counts %>%
 ```
 
 ```{r}
-# Fig. 1E: plot WT ring canal-to-cell ratios for Pav+, Pav+/Vsg+, and Vsg+
+# Fig. 1F: plot WT ring canal-to-cell ratios for Pav+, Pav+/Vsg+, and Vsg+
 # categories after collapsing Pnut status.
 
 plot_box_jitter(
@@ -64,7 +64,7 @@ ggsave(combined_output_file, width = 2.75, height = 2, units = "in", device = ca
 ```
 
 ```{r}
-# Fig. 1E: replicate-level summary values for the plotted ratios.
+# Fig. 1F: replicate-level summary values for the plotted ratios.
 
 wt_ring_counts_combined %>%
   group_by(Replicate, CombinedCategory) %>%

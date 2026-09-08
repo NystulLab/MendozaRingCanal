@@ -1,5 +1,5 @@
 ---
-title: "Fig. 1D - WT germarium and late-stage ring canal composition"
+title: "Fig. 1E - WT germarium and late-stage ring canal composition"
 output: null
 ---
 
@@ -13,14 +13,14 @@ source("analysis_helpers.R")
 ```
 
 ```{r}
-data_file <- "../Data/Fig1D_WT_germarium_late_stage_RC_composition.csv"
-output_file <- "../Results/Fig1D_WT_germarium_late_stage_RC_composition.pdf"
+data_file <- "../Data/Fig1E_WT_germarium_late_stage_RC_composition.csv"
+output_file <- "../Results/Fig1E_WT_germarium_late_stage_RC_composition.pdf"
 
 germarium_late_stage <- read_analysis_csv(data_file)
 ```
 
 ```{r}
-# Fig. 1D: calculate the percentage of each ring canal class in each sample.
+# Fig. 1E: calculate the percentage of each ring canal class in each sample.
 # Collapse Pnut+ Pav/Vsg rings with Pav/Vsg rings so the comparison focuses on
 # Pav and Vsg ring canal composition across stages.
 
@@ -41,7 +41,7 @@ germarium_late_stage_summary <- germarium_late_stage %>%
 ```
 
 ```{r}
-# Fig. 1D: plot ring canal class percentages in germaria and late follicles.
+# Fig. 1E: plot ring canal class percentages in germaria and late follicles.
 
 ggplot(germarium_late_stage_summary, aes(x = RCs, y = Percent, fill = Stage)) +
   scale_y_continuous(labels = scales::percent_format(scale = 1), limits = c(0, 100)) +
@@ -73,7 +73,7 @@ ggsave(output_file, width = 2.75, height = 2, units = "in", device = cairo_pdf)
 ```
 
 ```{r}
-# Fig. 1D: summary values for the plotted percentages.
+# Fig. 1E: summary values for the plotted percentages.
 
 summarize_mean_sd(
   germarium_late_stage_summary,
